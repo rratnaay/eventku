@@ -46,24 +46,6 @@ php artisan serve             # http://127.0.0.1:8000
 
 > **Windows + OneDrive**: jika muncul error *"bootstrap/cache must be present and writable"*, jalankan `attrib -R bootstrap\cache`.
 
-### Akun demo (dari seeder)
-
-| Peran | Email | Kata sandi |
-|-------|-------|-----------|
-| Admin | `admin@eventku.test` | `password` |
-| User  | `user@eventku.test`  | `password` |
-
-> Ganti kredensial ini sebelum deploy. File `.env` tidak boleh di-commit.
-
-## Testing
-
-Test memakai SQLite in-memory (tidak menyentuh data MySQL).
-
-```bash
-php artisan test
-```
-
-Cakupan: registrasi/login, hak akses admin, CRUD event & validasi poster, pendaftaran, pencegahan pendaftaran ganda, kuota penuh, event ditutup/selesai/draft, serta akses data pendaftaran milik pengguna lain.
 
 ## Cara menguji manual
 
@@ -79,25 +61,3 @@ Cakupan: registrasi/login, hak akses admin, CRUD event & validasi poster, pendaf
 | Kategori | `/admin/categories` → tambah/ubah; kategori yang dipakai event tidak bisa dihapus |
 | Status pendaftar | `/admin/registrations` → ubah status lewat dropdown |
 
-## Struktur
-
-```
-app/Http/Controllers      Home, Event, Registration, Contact, Auth/*, Admin/*
-app/Http/Middleware       EnsureUserIsAdmin
-app/Http/Requests/Admin   EventRequest, CategoryRequest
-app/Models                User, Category, Event, Registration, ContactMessage
-app/Policies              RegistrationPolicy
-app/Services              RegistrationService (transaksi & lock kuota)
-resources/views           layouts/, components/, events/, registrations/, auth/, admin/
-database                  migrations, factories, seeders
-public/images             hero & poster contoh
-```
-
-## Perintah Git
-
-```bash
-git status
-git add .
-git commit -m "feat: EventKu - event discovery, registration, and admin dashboard"
-git push -u origin feat
-```
