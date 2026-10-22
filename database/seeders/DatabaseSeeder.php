@@ -14,31 +14,57 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // ---- Pengguna ----
-        $admin = User::factory()->admin()->create([
-            'name' => 'Admin EventKu',
-            'email' => 'admin@eventku.test',
-            'password' => 'password',
-        ]);
+        $admin = User::query()->firstOrCreate(
+            ['email' => 'admin@eventku.test'],
+            ['name' => 'Admin EventKu', 'password' => 'password']
+        );
+        if (! $admin->isAdmin()) {
+            $admin->forceFill(['role' => User::ROLE_ADMIN])->save();
+        }
 
-        $demo = User::factory()->create([
-            'name' => 'Natasya Putri',
-            'email' => 'user@eventku.test',
-            'password' => 'password',
-        ]);
+        User::query()->firstOrCreate(
+            ['email' => 'user@eventku.test'],
+            ['name' => 'Natasya Putri', 'password' => 'password']
+        );
 
-        $users = collect([$demo])->merge(User::factory(24)->create());
+        $users = User::query()->where('role', User::ROLE_USER)->orderBy('id')->get();
+        for ($participantNumber = 1; $users->count() < 25 && $participantNumber <= 24; $participantNumber++) {
+            $participant = User::query()->firstOrCreate(
+                ['email' => sprintf('participant%02d@eventku.test', $participantNumber)],
+                ['name' => sprintf('Peserta Demo %02d', $participantNumber), 'password' => 'password']
+            );
+            $participant->refresh();
+            if ($participant->role === User::ROLE_USER && ! $users->contains('id', $participant->id)) {
+                $users->push($participant);
+            }
+        }
 
         // ---- Kategori ----
-        $categories = collect([
+        $categoryRows = [
             ['Musik', 'music', 'Konser, festival, dan pertunjukan live.'],
             ['Teknologi', 'cpu', 'Konferensi, workshop, dan hackathon.'],
             ['Seni & Budaya', 'palette', 'Pameran, teater, dan kegiatan budaya.'],
             ['Olahraga', 'run', 'Lari, gowes, dan turnamen komunitas.'],
             ['Pendidikan', 'book', 'Seminar, kelas, dan pelatihan.'],
             ['Kuliner', 'cup', 'Festival makanan dan kelas memasak.'],
-        ])->mapWithKeys(fn ($c) => [
-            $c[1] => Category::create(['name' => $c[0], 'slug' => Str::slug($c[0]), 'icon' => $c[1], 'description' => $c[2]]),
-        ]);
+        ];
+        $categories = collect($categoryRows)->mapWithKeys(function (array $category): array {
+            $categoryModel = Category::query()
+                ->where('slug', Str::slug($category[0]))
+                ->orWhere('name', $category[0])
+                ->first();
+
+            if (! $categoryModel) {
+                $categoryModel = Category::query()->create([
+                    'name' => $category[0],
+                    'slug' => Str::slug($category[0]),
+                    'icon' => $category[1],
+                    'description' => $category[2],
+                ]);
+            }
+
+            return [$category[1] => $categoryModel];
+        });
 
         $lorem = fn (string $intro) => $intro."\n\nAcara ini dirancang agar nyaman diikuti oleh peserta dari berbagai latar belakang. Panitia menyiapkan rangkaian kegiatan yang padat namun santai, lengkap dengan sesi interaksi, dokumentasi, dan kesempatan membangun jejaring.\n\nPeserta disarankan hadir 30 menit sebelum acara dimulai untuk registrasi ulang dengan menunjukkan kode registrasi dari EventKu.";
 
@@ -62,42 +88,65 @@ class DatabaseSeeder extends Seeder
             ['Konferensi Startup Muda', 'cpu', 'poster-tech', 'Jakarta', 'Jakarta Convention Center', 'Startup Muda ID', 45, 8, 1000, 350000, 'draft', false, 'Konferensi startup (masih draft, belum dipublikasikan).'],
         ];
 
+        $events = collect();
         foreach ($rows as $r) {
-            $start = now()->addDays($r[6])->setTime(rand(8, 17), 0);
-            Event::create([
+            $slug = Str::slug($r[0]);
+            $event = Event::query()->firstOrNew(['slug' => $slug]);
+            $start = $event->exists
+                ? $event->starts_at
+                : now()->addDays($r[6])->setTime(rand(8, 17), 0);
+
+            $event->fill([
                 'category_id' => $categories[$r[1]]->id,
-                'created_by' => $admin->id,
                 'title' => $r[0],
-                'slug' => Str::slug($r[0]),
+                'slug' => $slug,
                 'description' => $lorem($r[12]),
                 'poster' => 'images/'.$r[2].'.jpg',
                 'organizer' => $r[5],
                 'location' => $r[4],
                 'city' => $r[3],
                 'starts_at' => $start,
-                'ends_at' => (clone $start)->addHours($r[7]),
+                'ends_at' => $event->exists ? $event->ends_at : (clone $start)->addHours($r[7]),
                 'quota' => $r[8],
                 'price' => $r[9],
                 'status' => $r[10],
                 'is_featured' => $r[11],
             ]);
+            $event->setAttribute('created_by', $admin->id);
+            $event->save();
+            $events->push($event);
         }
 
-        // ---- Pendaftaran realistis (tidak melebihi kuota; satu event dibuat penuh) ----
-        $events = Event::visible()->get();
+        // ---- Pendaftaran contoh hanya untuk event yang masih menerima pendaftaran ----
         foreach ($events as $event) {
-            $take = $event->title === 'Intimate Jazz Night'
-                ? 25
-                : min($event->quota - 1, rand(3, max(3, min(20, $users->count()))));
+            if ($event->closedReason() !== null) {
+                continue;
+            }
 
-            foreach ($users->shuffle()->take(min($take, $users->count())) as $user) {
-                Registration::create([
-                    'user_id' => $user->id,
-                    'event_id' => $event->id,
-                    'code' => Registration::generateCode(),
-                    'status' => $event->ends_at->isPast() ? Registration::STATUS_ATTENDED : Registration::STATUS_CONFIRMED,
-                    'registered_at' => now()->subDays(rand(0, 14))->subMinutes(rand(0, 600)),
-                ]);
+            $targetRegistrations = $event->title === 'Intimate Jazz Night'
+                ? min($event->quota, 25)
+                : min(10, max(0, $event->quota - 1));
+            $activeRegistrations = $event->registrations()
+                ->where('status', '!=', Registration::STATUS_CANCELLED)
+                ->count();
+
+            foreach ($users as $user) {
+                if ($activeRegistrations >= $targetRegistrations || $activeRegistrations >= $event->quota) {
+                    break;
+                }
+
+                $registration = Registration::query()->firstOrCreate(
+                    ['user_id' => $user->id, 'event_id' => $event->id],
+                    [
+                        'code' => Registration::generateCode(),
+                        'status' => Registration::STATUS_CONFIRMED,
+                        'registered_at' => now()->subDays(rand(0, 14))->subMinutes(rand(0, 600)),
+                    ]
+                );
+
+                if ($registration->wasRecentlyCreated) {
+                    $activeRegistrations++;
+                }
             }
         }
     }
