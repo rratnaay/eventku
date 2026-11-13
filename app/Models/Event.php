@@ -110,7 +110,7 @@ class Event extends Model
             return asset($this->poster);
         }
 
-        return Storage::disk('public')->url($this->poster);
+        return Storage::disk(config('filesystems.poster_disk'))->url($this->poster);
     }
 
     public function getActiveRegistrationsAttribute(): int

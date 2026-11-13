@@ -73,7 +73,7 @@ class EventController extends Controller
         $title = $event->title;
 
         if ($event->poster && ! str_starts_with($event->poster, 'images/')) {
-            Storage::disk('public')->delete($event->poster);
+            Storage::disk(config('filesystems.poster_disk'))->delete($event->poster);
         }
 
         $event->delete();
@@ -89,9 +89,12 @@ class EventController extends Controller
         if ($request->hasFile('poster')) {
             // Hapus poster lama hasil upload (bukan aset bawaan).
             if ($event?->poster && ! str_starts_with($event->poster, 'images/')) {
-                Storage::disk('public')->delete($event->poster);
+                Storage::disk(config('filesystems.poster_disk'))->delete($event->poster);
             }
-            $data['poster'] = $request->file('poster')->store('posters', 'public');
+            $data['poster'] = $request->file('poster')->store(
+                'posters',
+                config('filesystems.poster_disk'),
+            );
         }
 
         return $data;

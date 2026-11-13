@@ -66,6 +66,20 @@ class AdminTest extends TestCase
         Storage::disk('public')->assertExists($event->poster);
     }
 
+    public function test_admin_stores_poster_on_the_configured_disk(): void
+    {
+        Storage::fake('s3');
+        config()->set('filesystems.poster_disk', 's3');
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)
+            ->post('/admin/events', $this->payload(['poster' => UploadedFile::fake()->image('poster.jpg', 600, 400)]))
+            ->assertRedirect(route('admin.events.index'));
+
+        $event = Event::where('title', 'Festival Kopi Nusantara')->firstOrFail();
+        Storage::disk('s3')->assertExists($event->poster);
+    }
+
     public function test_event_creation_validates_input_and_poster_type(): void
     {
         $this->actingAs(User::factory()->admin()->create())
