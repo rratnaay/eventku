@@ -10,6 +10,15 @@ class AuthenticationTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_login_page_does_not_display_demo_credentials(): void
+    {
+        $this->get('/login')
+            ->assertOk()
+            ->assertDontSee('Akun demo')
+            ->assertDontSee('admin@eventku.test')
+            ->assertDontSee('user@eventku.test');
+    }
+
     public function test_user_can_register_and_is_always_a_regular_user(): void
     {
         $response = $this->post('/register', [
@@ -77,5 +86,39 @@ class AuthenticationTest extends TestCase
     public function test_guest_is_redirected_to_login_for_private_pages(): void
     {
         $this->get('/my-registrations')->assertRedirect(route('login'));
+        $this->get('/profile')->assertRedirect(route('login'));
+    }
+
+    public function test_user_can_view_and_update_own_profile(): void
+    {
+        $user = User::factory()->create([
+            'name' => 'Nama Lama',
+            'email' => 'lama@example.com',
+            'phone' => '081111111111',
+        ]);
+
+        $this->actingAs($user)
+            ->get('/profile')
+            ->assertOk()
+            ->assertSee('Nama Lama')
+            ->assertSee('lama@example.com');
+
+        $this->actingAs($user)
+            ->put('/profile', [
+                'name' => 'Nama Baru',
+                'email' => 'baru@example.com',
+                'phone' => '081234567890',
+                'institution' => 'Komunitas Kreatif',
+                'city' => 'Bandung',
+            ])
+            ->assertRedirect(route('profile.edit'))
+            ->assertSessionHas('success');
+
+        $user->refresh();
+        $this->assertSame('Nama Baru', $user->name);
+        $this->assertSame('baru@example.com', $user->email);
+        $this->assertSame('081234567890', $user->phone);
+        $this->assertSame('Komunitas Kreatif', $user->institution);
+        $this->assertSame('Bandung', $user->city);
     }
 }

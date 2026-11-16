@@ -2,7 +2,7 @@
 
 @section('title', 'Pendaftar')
 @section('heading', 'Pendaftar')
-@section('subheading', 'Pantau dan kelola pendaftaran peserta')
+@section('subheading', 'Pantau pendaftaran dan verifikasi pembayaran peserta')
 
 @section('content')
 <form method="GET" class="card mb-6 grid gap-4 p-5 sm:grid-cols-4" role="search">
@@ -32,13 +32,28 @@
 
 <div class="table-wrap">
     <table class="table-x">
-        <thead><tr><th>Kode</th><th>Peserta</th><th>Event</th><th>Terdaftar</th><th>Status</th></tr></thead>
+        <thead><tr><th>Kode</th><th>Peserta</th><th>Event</th><th>Pembayaran</th><th>Terdaftar</th><th>Status</th></tr></thead>
         <tbody>
             @forelse ($registrations as $r)
                 <tr>
                     <td class="font-mono text-xs font-semibold">{{ $r->code }}</td>
-                    <td><p class="font-semibold">{{ $r->user->name }}</p><p class="text-xs text-cocoa-500">{{ $r->user->email }}</p></td>
+                    <td>
+                        <p class="font-semibold">{{ $r->participant_name ?: $r->user->name }}</p>
+                        <p class="text-xs text-cocoa-500">{{ $r->participant_email ?: $r->user->email }}</p>
+                        @if ($r->participant_phone ?: $r->user->phone)
+                            <p class="text-xs text-cocoa-500">WA: {{ $r->participant_phone ?: $r->user->phone }}</p>
+                        @endif
+                    </td>
                     <td class="max-w-[14rem] truncate">{{ $r->event->title }}</td>
+                    <td class="text-xs">
+                        <p class="font-semibold text-cocoa-800">{{ $r->event->price_label }}</p>
+                        <p class="text-cocoa-500">{{ $r->payment_status_label }}</p>
+                        @if ($r->payment_proof)
+                            <a href="{{ $r->payment_proof_url }}" target="_blank" rel="noopener noreferrer" class="mt-1 inline-flex items-center gap-1 font-semibold text-ember-600 hover:underline">
+                                Lihat Bukti Bayar →
+                            </a>
+                        @endif
+                    </td>
                     <td class="whitespace-nowrap text-xs">{{ $r->registered_at->format('d M Y H:i') }}</td>
                     <td>
                         <form method="POST" action="{{ route('admin.registrations.update', $r) }}" class="flex items-center gap-2">
@@ -51,7 +66,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="5" class="py-12 text-center text-cocoa-500">Tidak ada pendaftaran ditemukan.</td></tr>
+                <tr><td colspan="6" class="py-12 text-center text-cocoa-500">Tidak ada pendaftaran ditemukan.</td></tr>
             @endforelse
         </tbody>
     </table>

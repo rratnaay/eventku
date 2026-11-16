@@ -49,7 +49,7 @@
 
         <div class="relative animate-fade-up [animation-delay:150ms]">
             <div class="relative overflow-hidden rounded-[2.5rem] border-8 border-white shadow-lift">
-                <img src="{{ asset('images/hero.jpg') }}" alt="Pengunjung festival tertawa bersama di bawah lampu gantung saat senja" class="aspect-[4/5] w-full object-cover sm:aspect-[4/3] lg:aspect-[4/5]" fetchpriority="high">
+                <img src="{{ asset('images/beranda.jpg') }}" alt="Pengunjung festival tertawa bersama di bawah lampu gantung saat senja" class="aspect-[4/5] w-full object-cover sm:aspect-[4/3] lg:aspect-[4/5]" fetchpriority="high">
             </div>
             @if ($featured->first())
                 <a href="{{ route('events.show', $featured->first()) }}" class="absolute -bottom-6 -left-4 flex max-w-[16rem] animate-float items-center gap-3 rounded-3xl border border-beige-200 bg-white p-3 pr-5 shadow-lift transition hover:-translate-y-1 sm:-left-8">

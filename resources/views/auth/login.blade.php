@@ -34,11 +34,6 @@
             </label>
             <button type="submit" data-once class="btn btn-primary w-full">Masuk</button>
         </form>
-
-        <div class="mt-8 rounded-2xl bg-beige-100/70 p-4 text-xs text-cocoa-600">
-            <p class="font-semibold text-cocoa-800">Akun demo (data seeder)</p>
-            <p class="mt-1">Admin: <code>admin@eventku.test</code> · User: <code>user@eventku.test</code> · Sandi: <code>password</code></p>
-        </div>
     </div>
 </section>
 @endsection

@@ -15,8 +15,11 @@ class Event extends Model
     use HasFactory;
 
     public const STATUS_DRAFT = 'draft';
+
     public const STATUS_PUBLISHED = 'published';
+
     public const STATUS_CLOSED = 'closed';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     public const STATUSES = [
@@ -100,17 +103,81 @@ class Event extends Model
 
     /* ---------- Accessor & helper ---------- */
 
+    public const CATEGORY_POSTERS = [
+        'musik' => [
+            'images/konser 1.jpg',
+            'images/konser 2.jpg',
+            'images/konser 3.jpg',
+            'images/konser 4.jpg',
+            'images/poster-music.jpg',
+        ],
+        'kuliner' => [
+            'images/kuliner 1.jpg',
+            'images/kuliner 2.jpg',
+            'images/kuliner 3.jpg',
+        ],
+        'olahraga' => [
+            'images/oalahraga 1.jpg',
+            'images/olahraga 2.jpg',
+            'images/poster-sport.jpg',
+        ],
+        'pendidikan' => [
+            'images/pendidikan 1.jpg',
+            'images/pendidikan 2.jpg',
+            'images/pendidikan 3.jpg',
+        ],
+        'seni' => [
+            'images/seni 1.jpg',
+            'images/seni 2.jpg',
+            'images/poster-art.jpg',
+        ],
+        'teknologi' => [
+            'images/poster-tech.jpg',
+        ],
+    ];
+
     public function getPosterUrlAttribute(): string
     {
-        if (! $this->poster) {
-            return asset('images/hero.jpg');
+        if ($this->poster) {
+            if (str_starts_with($this->poster, 'images/')) {
+                if (file_exists(public_path($this->poster))) {
+                    return asset($this->poster);
+                }
+
+                return asset($this->defaultPosterByCategory());
+            }
+
+            return Storage::disk(config('filesystems.poster_disk'))->url($this->poster);
         }
 
-        if (str_starts_with($this->poster, 'images/')) {
-            return asset($this->poster);
+        return asset($this->defaultPosterByCategory());
+    }
+
+    public function defaultPosterByCategory(): string
+    {
+        $category = $this->relationLoaded('category') ? $this->category : $this->category()->first();
+        $slug = strtolower($category?->slug ?? '');
+        $name = strtolower($category?->name ?? '');
+        $icon = $category?->icon ?? '';
+
+        $key = match (true) {
+            str_contains($slug, 'musik') || str_contains($name, 'musik') || str_contains($name, 'konser') || $icon === 'music' => 'musik',
+            str_contains($slug, 'kuliner') || str_contains($name, 'kuliner') || $icon === 'cup' => 'kuliner',
+            str_contains($slug, 'olahraga') || str_contains($name, 'olahraga') || $icon === 'run' => 'olahraga',
+            str_contains($slug, 'pendidikan') || str_contains($name, 'pendidikan') || $icon === 'book' => 'pendidikan',
+            str_contains($slug, 'seni') || str_contains($name, 'seni') || $icon === 'palette' => 'seni',
+            str_contains($slug, 'teknologi') || str_contains($name, 'teknologi') || $icon === 'cpu' => 'teknologi',
+            default => null,
+        };
+
+        if ($key && isset(self::CATEGORY_POSTERS[$key])) {
+            $posters = self::CATEGORY_POSTERS[$key];
+            $index = $this->id ? (($this->id - 1) % count($posters)) : 0;
+
+            return $posters[$index];
         }
 
-        return Storage::disk(config('filesystems.poster_disk'))->url($this->poster);
+        return 'images/poster-music.jpg';
     }
 
     public function getActiveRegistrationsAttribute(): int

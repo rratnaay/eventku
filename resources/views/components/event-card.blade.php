@@ -1,9 +1,9 @@
 @props(['event'])
 @php [$statusLabel, $statusColor] = $event->display_status; @endphp
 <article class="reveal group card flex flex-col overflow-hidden transition duration-300 hover:-translate-y-1.5 hover:shadow-lift">
-    <a href="{{ route('events.show', $event) }}" class="relative block aspect-[4/3] overflow-hidden bg-beige-100" aria-label="Lihat {{ $event->title }}">
+    <a href="{{ route('events.show', $event) }}" class="relative block aspect-[4/5] overflow-hidden bg-beige-100" aria-label="Lihat {{ $event->title }}">
         <img src="{{ $event->poster_url }}" alt="Poster {{ $event->title }}" loading="lazy"
-             class="size-full object-cover transition duration-500 group-hover:scale-105">
+             class="size-full object-cover object-center transition duration-500 group-hover:scale-105">
         <div class="absolute inset-0 bg-gradient-to-t from-cocoa-900/50 via-transparent to-transparent"></div>
         <span class="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-cocoa-700 backdrop-blur">
             <x-icon :name="$event->category->icon" class="size-3.5 text-ember-600" /> {{ $event->category->name }}

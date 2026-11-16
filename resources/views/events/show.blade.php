@@ -14,8 +14,9 @@
 
     <div class="grid gap-10 lg:grid-cols-3">
         <article class="lg:col-span-2">
-            <div class="overflow-hidden rounded-[2rem] border-8 border-white shadow-lift">
-                <img src="{{ $event->poster_url }}" alt="Poster {{ $event->title }}" class="aspect-[16/10] w-full object-cover">
+            <div class="relative overflow-hidden rounded-[2rem] border-8 border-white bg-beige-100 shadow-lift">
+                <img src="{{ $event->poster_url }}" alt="" aria-hidden="true" class="absolute inset-0 size-full scale-110 object-cover opacity-25 blur-2xl">
+                <img src="{{ $event->poster_url }}" alt="Poster {{ $event->title }}" class="relative mx-auto max-h-[34rem] w-full object-contain">
             </div>
 
             <div class="mt-8 flex flex-wrap items-center gap-2">
@@ -67,23 +68,29 @@
                 <div class="mt-6 space-y-3">
                     @guest
                         @if ($event->is_open)
-                            <a href="{{ route('login') }}" class="btn btn-primary w-full">Masuk untuk Mendaftar</a>
+                            <a href="{{ route('events.register.create', $event) }}" class="btn btn-primary w-full"><x-icon name="ticket" class="size-5" /> Daftar Event</a>
                             <p class="text-center text-xs text-cocoa-500">Belum punya akun? <a href="{{ route('register') }}" class="font-semibold text-ember-600 hover:underline">Daftar gratis</a></p>
                         @else
                             <button class="btn btn-primary w-full" disabled>{{ $event->closedReason() }}</button>
                         @endif
                     @else
                         @if ($registration && ! $registration->isCancelled())
-                            <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
-                                <p class="flex items-center gap-2 font-semibold"><x-icon name="check" class="size-5" /> Anda sudah terdaftar</p>
-                                <p class="mt-1 text-xs">Kode: <strong class="font-mono">{{ $registration->code }}</strong></p>
-                            </div>
+                            @if ($registration->isConfirmed())
+                                <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
+                                    <p class="flex items-center gap-2 font-semibold"><x-icon name="check" class="size-5" /> Pendaftaran Terkonfirmasi</p>
+                                    <p class="mt-1 text-xs">Kode: <strong class="font-mono">{{ $registration->code }}</strong></p>
+                                </div>
+                            @else
+                                <div class="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                                    <p class="flex items-center gap-2 font-semibold"><x-icon name="clock" class="size-5" /> {{ $registration->status_label }}</p>
+                                    <p class="mt-1 text-xs">Kode: <strong class="font-mono">{{ $registration->code }}</strong></p>
+                                </div>
+                            @endif
                             <a href="{{ route('registrations.show', $registration) }}" class="btn btn-dark w-full">Lihat Pendaftaran</a>
                         @elseif ($event->is_open)
-                            <form method="POST" action="{{ route('events.register', $event) }}">
-                                @csrf
-                                <button type="submit" data-once class="btn btn-primary w-full"><x-icon name="ticket" class="size-5" /> Daftar Sekarang</button>
-                            </form>
+                            <a href="{{ route('events.register.create', $event) }}" class="btn btn-primary w-full">
+                                <x-icon name="ticket" class="size-5" /> Daftar Event
+                            </a>
                         @else
                             <button class="btn btn-primary w-full" disabled>{{ $event->closedReason() }}</button>
                         @endif

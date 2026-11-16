@@ -24,7 +24,7 @@ class EventFactory extends Factory
             'title' => $title,
             'slug' => Str::slug($title).'-'.fake()->unique()->numerify('####'),
             'description' => fake()->paragraphs(3, true),
-            'poster' => 'images/poster-music.jpg',
+            'poster' => null,
             'organizer' => fake()->company(),
             'location' => fake()->streetName().' Hall',
             'city' => fake()->randomElement(['Jakarta', 'Bandung', 'Yogyakarta', 'Surabaya', 'Malang']),

@@ -12,7 +12,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 // 'role' sengaja tidak mass-assignable agar tidak bisa dimanipulasi lewat form.
-#[Fillable(['name', 'email', 'phone', 'password'])]
+#[Fillable(['name', 'email', 'phone', 'institution', 'city', 'password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -20,6 +20,7 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     public const ROLE_USER = 'user';
+
     public const ROLE_ADMIN = 'admin';
 
     /**

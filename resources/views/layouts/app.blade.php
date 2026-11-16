@@ -41,6 +41,7 @@
                     @else
                         <a href="{{ route('registrations.index') }}" class="btn btn-outline btn-sm"><x-icon name="ticket" class="size-4" /> Pendaftaran Saya</a>
                     @endif
+                    <a href="{{ route('profile.edit') }}" class="btn btn-outline btn-sm"><x-icon name="user" class="size-4" /> Profil</a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button class="btn btn-dark btn-sm" type="submit" title="Keluar sebagai {{ auth()->user()->name }}"><x-icon name="logout" class="size-4" /> Keluar</button>
@@ -66,6 +67,7 @@
             <div class="mt-4 flex flex-col gap-2">
                 @auth
                     <a href="{{ auth()->user()->isAdmin() ? route('admin.dashboard') : route('registrations.index') }}" class="btn btn-outline">{{ auth()->user()->isAdmin() ? 'Dashboard Admin' : 'Pendaftaran Saya' }}</a>
+                    <a href="{{ route('profile.edit') }}" class="btn btn-outline">Profil Saya</a>
                     <form method="POST" action="{{ route('logout') }}">@csrf<button class="btn btn-dark w-full" type="submit">Keluar</button></form>
                 @else
                     <a href="{{ route('login') }}" class="btn btn-outline">Masuk</a>
@@ -99,6 +101,7 @@
                 <h2 class="font-sans text-sm font-bold uppercase tracking-widest text-cream-50">Akun</h2>
                 <ul class="mt-4 space-y-2 text-sm">
                     @auth
+                        <li><a class="hover:text-ember-400" href="{{ route('profile.edit') }}">Profil Saya</a></li>
                         <li><a class="hover:text-ember-400" href="{{ route('registrations.index') }}">Pendaftaran Saya</a></li>
                     @else
                         <li><a class="hover:text-ember-400" href="{{ route('login') }}">Masuk</a></li>
