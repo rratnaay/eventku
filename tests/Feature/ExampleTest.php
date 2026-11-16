@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Category;
 use App\Models\Event;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -15,9 +16,43 @@ class ExampleTest extends TestCase
     {
         $event = Event::factory()->create();
 
-        foreach (['/', '/events', '/about', '/contact', '/login', '/register', "/events/{$event->slug}"] as $url) {
+        foreach (['/', '/events', '/about', '/tentang', '/contact', '/login', '/register', "/events/{$event->slug}"] as $url) {
             $this->get($url)->assertOk();
         }
+    }
+
+    public function test_about_menu_and_page_are_only_accessible_to_guests(): void
+    {
+        // Guest melihat menu Tentang dan dapat membuka halaman Tentang
+        $this->get('/')
+            ->assertOk()
+            ->assertSee(route('about'), false)
+            ->assertSee('Tentang');
+
+        $this->get('/about')->assertOk();
+        $this->get('/tentang')->assertOk();
+
+        // User login tidak melihat menu Tentang di navbar dan diarahkan ke Beranda saat akses langsung
+        $user = User::factory()->create();
+        $this->actingAs($user)
+            ->get('/')
+            ->assertOk()
+            ->assertDontSee(route('about'), false)
+            ->assertSee(route('registrations.index'), false)
+            ->assertSee(route('profile.edit'), false);
+
+        $this->actingAs($user)->get('/about')->assertRedirect(route('home'));
+        $this->actingAs($user)->get('/tentang')->assertRedirect(route('home'));
+
+        // Admin login tidak melihat menu Tentang dan diarahkan ke Beranda saat akses langsung
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin)
+            ->get('/admin')
+            ->assertOk()
+            ->assertDontSee(route('about'), false);
+
+        $this->actingAs($admin)->get('/about')->assertRedirect(route('home'));
+        $this->actingAs($admin)->get('/tentang')->assertRedirect(route('home'));
     }
 
     public function test_contact_page_displays_direct_contact_channels_without_message_form(): void

@@ -26,11 +26,21 @@
 
             <ul class="hidden items-center gap-1 md:flex">
                 @foreach ($nav as [$label, $route, $pattern])
-                    <li>
-                        <a href="{{ route($route) }}"
-                           @class(['rounded-full px-4 py-2 text-sm font-semibold transition', 'bg-beige-100 text-cocoa-900' => request()->routeIs($pattern), 'text-cocoa-600 hover:bg-beige-100/70 hover:text-cocoa-900' => ! request()->routeIs($pattern)])
-                           @if (request()->routeIs($pattern)) aria-current="page" @endif>{{ $label }}</a>
-                    </li>
+                    @if ($route !== 'about')
+                        <li>
+                            <a href="{{ route($route) }}"
+                               @class(['rounded-full px-4 py-2 text-sm font-semibold transition', 'bg-beige-100 text-cocoa-900' => request()->routeIs($pattern), 'text-cocoa-600 hover:bg-beige-100/70 hover:text-cocoa-900' => ! request()->routeIs($pattern)])
+                               @if (request()->routeIs($pattern)) aria-current="page" @endif>{{ $label }}</a>
+                        </li>
+                    @else
+                        @guest
+                            <li>
+                                <a href="{{ route($route) }}"
+                                   @class(['rounded-full px-4 py-2 text-sm font-semibold transition', 'bg-beige-100 text-cocoa-900' => request()->routeIs($pattern), 'text-cocoa-600 hover:bg-beige-100/70 hover:text-cocoa-900' => ! request()->routeIs($pattern)])
+                                   @if (request()->routeIs($pattern)) aria-current="page" @endif>{{ $label }}</a>
+                            </li>
+                        @endguest
+                    @endif
                 @endforeach
             </ul>
 
@@ -61,7 +71,13 @@
         <div id="mobile-menu" class="hidden border-t border-beige-200 bg-cream-50 px-4 pb-5 pt-3 md:hidden">
             <ul class="space-y-1">
                 @foreach ($nav as [$label, $route, $pattern])
-                    <li><a href="{{ route($route) }}" class="block rounded-2xl px-4 py-3 text-sm font-semibold {{ request()->routeIs($pattern) ? 'bg-beige-100 text-cocoa-900' : 'text-cocoa-600' }}">{{ $label }}</a></li>
+                    @if ($route !== 'about')
+                        <li><a href="{{ route($route) }}" class="block rounded-2xl px-4 py-3 text-sm font-semibold {{ request()->routeIs($pattern) ? 'bg-beige-100 text-cocoa-900' : 'text-cocoa-600' }}">{{ $label }}</a></li>
+                    @else
+                        @guest
+                            <li><a href="{{ route($route) }}" class="block rounded-2xl px-4 py-3 text-sm font-semibold {{ request()->routeIs($pattern) ? 'bg-beige-100 text-cocoa-900' : 'text-cocoa-600' }}">{{ $label }}</a></li>
+                        @endguest
+                    @endif
                 @endforeach
             </ul>
             <div class="mt-4 flex flex-col gap-2">
@@ -93,7 +109,9 @@
                 <h2 class="font-sans text-sm font-bold uppercase tracking-widest text-cream-50">Jelajah</h2>
                 <ul class="mt-4 space-y-2 text-sm">
                     <li><a class="hover:text-ember-400" href="{{ route('events.index') }}">Semua Event</a></li>
-                    <li><a class="hover:text-ember-400" href="{{ route('about') }}">Tentang Kami</a></li>
+                    @guest
+                        <li><a class="hover:text-ember-400" href="{{ route('about') }}">Tentang Kami</a></li>
+                    @endguest
                     <li><a class="hover:text-ember-400" href="{{ route('contact') }}">Hubungi Kami</a></li>
                 </ul>
             </div>

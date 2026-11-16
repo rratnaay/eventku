@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Route;
 // ---- Publik ----
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/about', [HomeController::class, 'about'])->name('about');
+Route::get('/tentang', [HomeController::class, 'about'])->name('tentang');
 Route::get('/contact', [ContactController::class, 'show'])->name('contact');
 
 Route::get('/events', [EventController::class, 'index'])->name('events.index');

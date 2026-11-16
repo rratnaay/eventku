@@ -33,6 +33,10 @@ class HomeController extends Controller
 
     public function about()
     {
+        if (auth()->check()) {
+            return redirect()->route('home');
+        }
+
         return view('about');
     }
 }
